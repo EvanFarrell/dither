@@ -104,13 +104,24 @@ Adding an effect means adding one entry to a category file — `{name, cat, pal,
 
 ## Running locally
 
-ES modules need HTTP, not `file://`:
+No build step needed — the ES modules just need HTTP, not `file://`:
 
 ```bash
-python3 -m http.server 8420
+npm run dev            # python3 -m http.server 8420
 # open http://127.0.0.1:8420
 ```
 
+## Building
+
+`npm run build` bundles the ten modules into one minified inline script with esbuild and writes `dist/`:
+
+```bash
+npm run build          # dist/index.html + dist/audio + dist/og.png
+npm run preview        # build, then serve dist/ on :8420
+```
+
+The bundle and CSS are inlined, so the built page is a single HTML request plus the audio files (~40 kB total, zero JS requests). Local development never needs this step.
+
 ## Deployment
 
-Static output — serve the folder from any static host. `og.png` is referenced by the Open Graph and Twitter tags in `index.html`, so update those URLs if you host it on another domain.
+Static output: run `npm run build` and serve `dist/` from any static host. `og.png` is referenced by the Open Graph and Twitter tags in `index.html`, so update those URLs if you host it on another domain.
