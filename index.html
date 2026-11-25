@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>retro-loops</title>
+<meta name="description" content="34 dithered animated backdrops and dreamcore loops: skies, planets, space, Tokyo neon, liminal rooms and Escher mazes. Paste a screenshot, pick a soundtrack, export a 6s loop.">
+<link rel="canonical" href="https://retro-loops.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="retro-loops">
+<meta property="og:url" content="https://retro-loops.vercel.app/">
+<meta property="og:title" content="retro-loops">
+<meta property="og:description" content="34 dithered animated backdrops and dreamcore loops. Paste a screenshot, pick a soundtrack, export a 6s loop.">
+<meta property="og:image" content="https://retro-loops.vercel.app/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Collage of twelve dithered retro-loops styles: Tokyo neon, poolrooms, black hole, sliced sunset, Saturn, Escher stairs, nebula, clouds, vortex, dreamfield, arches and ocean world.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="retro-loops">
+<meta name="twitter:description" content="34 dithered animated backdrops and dreamcore loops. Paste a screenshot, pick a soundtrack, export a 6s loop.">
+<meta name="twitter:image" content="https://retro-loops.vercel.app/og.png">
+<meta name="twitter:image:alt" content="Collage of twelve dithered retro-loops styles.">
+<style>
+html,body{margin:0;height:100%;background:#000;}
+body{display:flex;align-items:center;justify-content:center;padding-bottom:50px;box-sizing:border-box;overflow:hidden;font:11px monospace;color:#999}
+canvas{display:block;image-rendering:pixelated;cursor:pointer}
+#ui{position:fixed;left:10px;bottom:8px;right:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+button,select{font:11px monospace;background:#111;color:#ddd;border:1px solid #333;padding:4px 7px;cursor:pointer}
+button:hover,select:hover{border-color:#888}
+select{max-width:165px}
+#rec.on{background:#a00;color:#fff}
+#ap.on{border-color:#7cf;color:#7cf}
+#ap:disabled{opacity:.4;cursor:default}
+#pz{border:1px dashed #555;padding:4px 8px;color:#888;outline:none;white-space:nowrap;overflow:hidden;width:130px;height:13px}
+#out{position:fixed;right:10px;top:10px;display:none;background:#111;border:1px solid #333;padding:8px;width:320px}
+#out video{width:100%;display:block;margin-bottom:6px}
+#out a{color:#7cf}
+#gate{position:fixed;inset:0 0 50px 0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);cursor:pointer;z-index:10}
+#gate.on{display:flex}
+#gate span{background:#111;color:#eee;border:1px solid #555;padding:10px 18px;font:12px monospace;letter-spacing:.04em}
+#gate:hover span{border-color:#fff}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="gate"><span id="gt">▶ click to start</span></div>
+<div id="ui">
+  <button id="pe">◀</button>
+  <select id="es" aria-label="Effect"></select>
+  <button id="ne">▶</button>
+  <button id="pp">palette</button>
+  <div id="pz" contenteditable="true">click here, then ⌘V</div>
+  <span>bg</span><button id="zo">−</button><button id="zi">+</button>
+  <button id="ci">clear</button>
+  <select id="as" aria-label="Audio"></select>
+  <button id="ap" title="Preview audio" disabled>♪</button>
+  <input id="af" type="file" accept="audio/*" hidden>
+  <button id="rec">● 6s</button>
+  <button id="rl">↻ loop</button>
+  <span id="l"></span>
+</div>
+<div id="out"><video id="v" controls loop muted playsinline></video><a id="dl" download="dither.webm">download</a> · <a href="#" id="cl">close</a><div style="margin-top:4px;color:#666">if download is blocked, right-click the video → save</div></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
