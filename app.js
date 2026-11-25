@@ -1,14 +1,17 @@
 import {FX} from './effects/index.js';
 import {P,PN} from './palettes.js';
+import {renderField} from './render.js';
+import {createScenePicker,sceneLabel} from './scene-picker.js';
 
 const $=id=>document.getElementById(id);
 const c=$('c'),x=c.getContext('2d'),S=4;
-const L=$('l'),es=$('es'),as=$('as'),ap=$('ap'),af=$('af');
+const palette=$('palette'),as=$('as'),ap=$('ap'),af=$('af');
 const gate=$('gate'),gt=$('gt'),out=$('out'),v=$('v'),dl=$('dl'),clBtn=$('cl');
-const pe=$('pe'),ne=$('ne'),pp=$('pp'),pz=$('pz'),zo=$('zo'),zi=$('zi'),ci=$('ci'),rec=$('rec'),rl=$('rl');
+const pe=$('pe'),ne=$('ne'),zo=$('zo'),zi=$('zi'),ci=$('ci'),rec=$('rec'),rl=$('rl');
+const sceneName=$('scene-name'),sceneCategory=$('scene-category');
+const addImage=$('add-image'),imageFile=$('image-file'),imageMargin=$('image-margin');
 
-let W=400,H=225,s,sx,img,d;
-const B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(val=>(val+.5)/16);
+let W=400,H=225,s,sx,img;
 
 // Optional instrumental dreamcore soundtracks (encoded into recorded video when selected)
 const TRACKS=[
@@ -139,21 +142,11 @@ async function addAudioFile(file){
   setAudio(aIdx,!gated,true);
 }
 
-function buildSelect(){
-  es.innerHTML='';
-  const cats=[];
-  for(const fx of FX)if(!cats.includes(fx.cat))cats.push(fx.cat);
-  for(const cat of cats){
-    const og=document.createElement('optgroup');
-    og.label=cat;
-    FX.forEach((fx,idx)=>{
-      if(fx.cat!==cat)return;
-      const op=document.createElement('option');
-      op.value=idx;op.textContent=fx.name;
-      og.appendChild(op);
-    });
-    es.appendChild(og);
-  }
+const selectSceneButton=createScenePicker($('scene-list'),FX,P,chooseEffect);
+$('scene-count').textContent=FX.length;
+for(const [index,name] of PN.entries()){
+  const option=new Option(sceneLabel(name),index);
+  palette.add(option);
 }
 
 function findEffect(key){
@@ -176,12 +169,28 @@ function findPalette(key){
 
 function setEffect(idx,syncHash=true,palOverride=-1){
   e=(idx%FX.length+FX.length)%FX.length;
-  p=palOverride>=0?palOverride:FX[e].pal;
-  es.value=String(e);
-  document.title='retro-loops — '+FX[e].name;
-  if(syncHash&&location.hash!=='#'+FX[e].name){
-    history.replaceState(null,'','#'+FX[e].name);
+  const scene=FX[e];
+  const label=scene.label??sceneLabel(scene.name);
+  p=palOverride>=0?palOverride:scene.pal;
+  selectSceneButton(e);
+  palette.value=String(p);
+  sceneName.textContent=label;
+  sceneCategory.textContent=sceneLabel(scene.cat);
+  document.title=label+' · Dither';
+  if(syncHash&&location.hash!=='#'+scene.name){
+    history.replaceState(null,'','#'+scene.name);
   }
+}
+
+function chooseEffect(index){
+  setEffect(index);
+  if(gated)draw(2.5);
+}
+
+function setPalette(index){
+  p=index;
+  palette.value=String(p);
+  if(gated)draw(2.5);
 }
 
 function applyUrl(initial=false){
@@ -199,13 +208,13 @@ function applyUrl(initial=false){
   if(wantGate){
     gated=true;
     const trk=TRACKS[aIdx];
-    gt.textContent=trk&&trk.src?'loading '+trk.name+'…':'▶ click to start';
+    gt.textContent=trk&&trk.src?'loading '+trk.name+'…':'▶ Click to start';
     gate.classList.add('on');
     if(trk&&trk.src){
       loadTrack(trk).then(()=>{
-        if(gated)gt.textContent='▶ click to start · '+trk.name;
+        if(gated)gt.textContent='▶ Click to start · '+trk.name;
       }).catch(()=>{
-        if(gated)gt.textContent='▶ click to start';
+        if(gated)gt.textContent='▶ Click to start';
       });
     }
   }
@@ -229,57 +238,80 @@ function size(){
   W=Math.round(Math.sqrt(90000*ar));H=Math.round(90000/W);W+=W&1;H+=H&1;
   c.width=W*S;c.height=H*S;
   s=document.createElement('canvas');s.width=W;s.height=H;sx=s.getContext('2d');
-  img=sx.createImageData(W,H);d=img.data;fit();
+  img=sx.createImageData(W,H);
+  c.style.setProperty('--preview-ratio',W/H);
+  ci.disabled=zo.disabled=zi.disabled=!pic;
+  imageMargin.hidden=!pic;
+  imageMargin.value=Math.round(pad*100)+'%';
 }
 
-function fit(){
-  const ar=W/H;
-  c.style.aspectRatio=W+'/'+H;
-  c.style.width='min(100vw, calc((100vh - 50px) * '+ar+'))';
-  c.style.height='auto';
-}
+addEventListener('hashchange',()=>{
+  applyUrl(false);
+  if(gated)draw(2.5);
+});
 
-addEventListener('resize',fit);
-addEventListener('hashchange',()=>applyUrl(false));
-
-ne.onclick=()=>{setEffect(e+1);if(gated)draw(2.5)};
-pe.onclick=()=>{setEffect(e-1);if(gated)draw(2.5)};
-es.onchange=()=>{setEffect(Number(es.value));if(gated)draw(2.5)};
+ne.onclick=()=>chooseEffect(e+1);
+pe.onclick=()=>chooseEffect(e-1);
+palette.onchange=()=>setPalette(Number(palette.value));
 as.onchange=()=>{
   if(as.value==='__upload__'){as.value=String(aIdx);af.click();return}
   setAudio(Number(as.value),!gated,true);
   if(gated){
     const trk=TRACKS[aIdx];
-    gt.textContent=trk&&trk.src?'▶ click to start · '+trk.name:'▶ click to start';
+    gt.textContent=trk&&trk.src?'▶ Click to start · '+trk.name:'▶ Click to start';
     if(trk&&trk.src)loadTrack(trk).catch(()=>{});
   }
 };
 af.onchange=()=>{if(af.files&&af.files[0])addAudioFile(af.files[0]);af.value=''};
 ap.onclick=togglePreview;
-pp.onclick=()=>{p=(p+1)%P.length;if(gated)draw(2.5)};
 ci.onclick=()=>{pic=null;size();if(gated)draw(2.5)};
-c.onclick=()=>{setEffect(e+1);if(gated)draw(2.5)};
+c.onclick=()=>chooseEffect(e+1);
 zi.onclick=()=>{pad=Math.min(.6,pad+.03);size();if(gated)draw(2.5)};
 zo.onclick=()=>{pad=Math.max(0,pad-.03);size();if(gated)draw(2.5)};
 
+$('save-png').onclick=()=>{
+  const filename=FX[e].name+'-'+PN[p]+'.png';
+  c.toBlob(blob=>{
+    if(!blob)return;
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=filename;
+    link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  },'image/png');
+};
+
 addEventListener('keydown',ev=>{
-  if(document.activeElement===pz||ev.metaKey||ev.ctrlKey||ev.altKey)return;
-  if(gated&&(ev.key===' '||ev.key==='Enter')){ev.preventDefault();enter();return}
-  if(ev.key==='ArrowRight'){ev.preventDefault();setEffect(e+1);if(gated)draw(2.5)}
-  else if(ev.key==='ArrowLeft'){ev.preventDefault();setEffect(e-1);if(gated)draw(2.5)}
-  else if(ev.key==='p'||ev.key==='P'){p=(p+1)%P.length;if(gated)draw(2.5)}
+  if(ev.defaultPrevented||ev.metaKey||ev.ctrlKey||ev.altKey)return;
+  if(ev.target.closest?.('select, input, textarea, video, [contenteditable]'))return;
+  if(gated&&(ev.key===' '||ev.key==='Enter')&&!ev.target.closest?.('button, a')){
+    ev.preventDefault();
+    enter();
+    return;
+  }
+  if(ev.key==='ArrowRight'){ev.preventDefault();chooseEffect(e+1)}
+  else if(ev.key==='ArrowLeft'){ev.preventDefault();chooseEffect(e-1)}
+  else if(ev.key==='p'||ev.key==='P'){setPalette((p+1)%P.length)}
 });
 
 const setPic=src=>{const im=new Image();im.onload=()=>{pic=im;size();if(gated)draw(2.5)};im.src=src};
 const load=file=>{const fr=new FileReader();fr.onload=()=>setPic(fr.result);fr.readAsDataURL(file)};
-pz.onfocus=()=>pz.textContent='';
-pz.onblur=()=>pz.textContent='click here, then ⌘V';
+addImage.onclick=()=>imageFile.click();
+imageFile.onchange=()=>{
+  if(imageFile.files[0])load(imageFile.files[0]);
+  imageFile.value='';
+};
 document.addEventListener('paste',ev=>{
-  ev.preventDefault();
-  const its=ev.clipboardData&&ev.clipboardData.items||[];
-  for(const it of its)if(it.type.startsWith('image/')){load(it.getAsFile());break}
-  pz.innerHTML='';
-},true);
+  const items=ev.clipboardData?.items??[];
+  for(const item of items){
+    if(item.type.startsWith('image/')){
+      const file=item.getAsFile();
+      if(file){ev.preventDefault();load(file)}
+      break;
+    }
+  }
+});
 addEventListener('dragover',ev=>ev.preventDefault());
 addEventListener('drop',ev=>{
   ev.preventDefault();
@@ -361,22 +393,15 @@ async function go(loop){
   }
 }
 
-let LT=0;
 function draw(t){
-  LT=lp?Math.min(T,(performance.now()-lp)/1000):0;
-  const pal=P[p],fn=FX[e].fn,hw=H/W;
-  for(let j=0;j<H;j++){
-    const vv=(j/H-.5)*hw,by=(j&3)*4,row=j*W;
-    for(let i=0;i<W;i++){
-      const u=i/W-.5;
-      let g;
-      if(lp){const tt=LT,a=tt/T;g=(1-a)*fn(u,vv,tt+100)+a*fn(u,vv,tt+100-T)}
-      else g=fn(u,vv,t);
-      g=(g<0?0:g>.999?.999:g)*4;
-      const b=g|0,q=g-b>B[by+(i&3)]?b+1:b,col=pal[q],k=(row+i)*4;
-      d[k]=col[0];d[k+1]=col[1];d[k+2]=col[2];d[k+3]=255;
-    }
+  const scene=FX[e].fn;
+  let field=scene;
+  if(lp){
+    const progress=Math.min(T,(performance.now()-lp)/1000);
+    const blend=progress/T;
+    field=(u,v)=> (1-blend)*scene(u,v,progress+100)+blend*scene(u,v,progress+100-T);
   }
+  renderField(img,P[p],field,t);
   sx.putImageData(img,0,0);
   x.imageSmoothingEnabled=false;
   x.drawImage(s,0,0,W*S,H*S);
@@ -388,8 +413,6 @@ function draw(t){
     x.drawImage(pic,(W*S-w)/2,(H*S-h)/2,w,h);
     x.shadowBlur=0;
   }
-  const audTag=TRACKS[aIdx]&&TRACKS[aIdx].src?' · '+TRACKS[aIdx].name:'';
-  L.textContent=FX[e].cat+' / '+FX[e].name+' · '+PN[p]+audTag+(pic?' · bg '+Math.round(pad*100)+'%':'');
 }
 
 function f(){
@@ -403,5 +426,5 @@ window.retroLoops={
   get state(){return{e,p,aIdx,gated,playing:Boolean(prevNode),acState:ac?ac.state:null,cached:audioBufs.size}}
 };
 
-buildSelect();buildAudioSelect();applyUrl(true);size();
+buildAudioSelect();applyUrl(true);size();
 if(gated)draw(2.5);else f();

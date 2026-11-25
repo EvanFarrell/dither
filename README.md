@@ -1,14 +1,14 @@
-# retro-loops
+# Dither
 
 ![Collage of twelve retro-loops styles: Tokyo neon, poolrooms, black hole, sliced sunset, Saturn, Escher stairs, nebula, clouds, vortex, dreamfield, arches, ocean world](./og.png)
 
-**Live:** [retro-loops.vercel.app](https://retro-loops.vercel.app) · [∞.vercel.app](https://xn--59g.vercel.app)
+Forked from [Retro Loops](https://github.com/rauchg/retro-loops).
 
-Dithered animated backdrops and dreamcore loops for screenshots and video exports. Paste a screenshot to frame it in the middle of a moving scene, pick an instrumental soundtrack, and record a 6-second MP4/WebM loop with audio baked in.
+Browse 34 animated scenes in the left sidebar. Pick a palette and save the current frame as a PNG, or record a six-second MP4 or WebM with an optional soundtrack. Add, paste, or drop an image to frame it in the scene.
 
-Built with [fx](https://fx.sh).
+The original was built with [fx](https://fx.sh).
 
-No build step, no dependencies, no framework. One `index.html`, one ES module, and a folder of effect definitions.
+The app runs without a build step or framework.
 
 ## How it works
 
@@ -51,15 +51,18 @@ Standouts:
 
 `sunset` `cyan` `ember` `synth` `phosphor` `mono` `daydream` `poolrooms` `deepspace` `ochre` `tokyo`
 
-Each effect ships with a default palette, and `p` cycles through all of them.
+Each scene starts with its own palette. Pick another from the Palette menu or press `p` to cycle through them.
 
 ## Controls
 
 | | |
 | --- | --- |
-| `←` `→`, click canvas | previous / next effect |
+| Scene sidebar | browse by thumbnail and category |
+| `←` `→`, click canvas | previous / next scene |
+| `↑` `↓` while focused in the sidebar | previous / next scene |
 | `p` | next palette |
-| paste `⌘V` or drop an image | frame a screenshot |
+| Add image, paste, or drop an image | frame a screenshot |
+| Save PNG | download the current frame with any added image |
 | `−` `+` | shrink / grow the background margin |
 | `♪` | preview the selected soundtrack |
 | `● 6s` / `↻ loop` | record a clip, optionally as a seamless 6s loop |
@@ -85,7 +88,9 @@ You can also drop in your own audio file; it plays and records the same way.
 
 ```text
 index.html          markup, UI, styles
-app.js              renderer, dithering, audio, recorder, URL/state handling
+app.js              canvas, image and video export, audio, URL/state handling
+render.js           shared dither renderer
+scene-picker.js     scrollable scene list and thumbnails
 palettes.js         11 five-stop palettes
 og.png              1200×630 collage used for the social card
 effects/
@@ -100,7 +105,7 @@ effects/
 audio/              two instrumental loops
 ```
 
-Adding an effect means adding one entry to a category file — `{name, cat, pal, fn}` — and it shows up in the dropdown, the URL router, and the recorder automatically.
+Add a scene to a category file in `effects/` with `{name, cat, pal, fn}`. Use a unique URL-friendly `name`, the category as `cat`, and the default palette index as `pal`. Add an optional `label` if the display name needs spaces. The sidebar renders its thumbnail from the same function used in the main preview. Edit or add five-color palettes in `palettes.js`.
 
 ## Running locally
 
@@ -113,15 +118,16 @@ npm run dev            # python3 -m http.server 8420
 
 ## Building
 
-`npm run build` bundles the ten modules into one minified inline script with esbuild and writes `dist/`:
+Install the build dependency, then use `npm run build` to bundle the modules and write `dist/`.
 
 ```bash
+pnpm install --frozen-lockfile
 npm run build          # dist/index.html + dist/audio + dist/og.png
 npm run preview        # build, then serve dist/ on :8420
 ```
 
-The bundle and CSS are inlined, so the built page is a single HTML request plus the audio files (~40 kB total, zero JS requests). Local development never needs this step.
+The bundle and CSS are inlined, so the built page is a single HTML request plus the audio files. Local development never needs this step.
 
 ## Deployment
 
-Static output: run `npm run build` and serve `dist/` from any static host. `og.png` is referenced by the Open Graph and Twitter tags in `index.html`, so update those URLs if you host it on another domain.
+Run `npm run build` and serve `dist/` from any static host.
