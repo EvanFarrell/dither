@@ -28,8 +28,8 @@ canvas{display:block;image-rendering:pixelated;cursor:pointer}
 #ui{position:fixed;left:10px;bottom:8px;right:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 button,select{font:11px monospace;background:#111;color:#ddd;border:1px solid #333;padding:4px 7px;cursor:pointer}
 button:hover,select:hover{border-color:#888}
-#src{font:11px monospace;color:#888;text-decoration:none;border:1px solid #333;padding:4px 7px;margin-left:auto}
-#src:hover{border-color:#888;color:#ddd}
+#src,#fxl{font:11px monospace;color:#888;text-decoration:none;border:1px solid #333;padding:4px 7px}
+#src:hover,#fxl:hover{border-color:#888;color:#ddd}
 select{max-width:165px}
 #rec.on{background:#a00;color:#fff}
 #ap.on{border-color:#7cf;color:#7cf}
@@ -48,6 +48,8 @@ select{max-width:165px}
 <canvas id="c"></canvas>
 <div id="gate"><span id="gt">▶ click to start</span></div>
 <div id="ui">
+  <a id="src" href="https://github.com/rauchg/retro-loops" target="_blank" rel="noopener">source ↗</a>
+  <a id="fxl" href="https://fx.sh" target="_blank" rel="noopener" title="made with fx">fx.sh ↗</a>
   <button id="pe">◀</button>
   <select id="es" aria-label="Effect"></select>
   <button id="ne">▶</button>
@@ -61,7 +63,6 @@ select{max-width:165px}
   <button id="rec">● 6s</button>
   <button id="rl">↻ loop</button>
   <span id="l"></span>
-  <a id="src" href="https://github.com/rauchg/retro-loops" target="_blank" rel="noopener">source ↗</a>
 </div>
 <div id="out"><video id="v" controls loop muted playsinline></video><a id="dl" download="dither.webm">download</a> · <a href="#" id="cl">close</a><div style="margin-top:4px;color:#666">if download is blocked, right-click the video → save</div></div>
 <script type="module" src="./app.js"></script>
