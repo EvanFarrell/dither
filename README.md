@@ -4,7 +4,7 @@
 
 Forked from [Retro Loops](https://github.com/rauchg/retro-loops).
 
-Browse 34 animated scenes in the left sidebar. Pick a palette and save the current frame as a PNG, or record a six-second MP4 or WebM with an optional soundtrack. Add, paste, or drop an image to frame it in the scene.
+Browse 55 animated scenes in the left sidebar. Pick a palette and save the current frame as a PNG, or record a six-second MP4 or WebM with an optional soundtrack. Add, paste, or drop an image to frame it in the scene.
 
 The original was built with [fx](https://fx.sh).
 
@@ -29,7 +29,7 @@ Because a scene is just a function, a whole new style is ~20–80 lines of math:
 
 Audio is decoded with Web Audio and routed through `MediaStreamAudioDestinationNode`, then muxed with `canvas.captureStream()` into `MediaRecorder`, so exported clips carry sound.
 
-## Effects (34)
+## Effects (55)
 
 | Category | Effects |
 | --- | --- |
@@ -39,6 +39,10 @@ Audio is decoded with Web Audio and routed through `MediaStreamAudioDestinationN
 | `space` | `starfield` `blackhole` `galaxy` `pulsar` `nebula` |
 | `dreamcore` | `poolrooms` `portals` `dreamfield` `arches` `halo` `memory` |
 | `impossible` | `droste` `escher` `atrium` `backrooms` `mirrors` `labyrinth` `tokyo` |
+| `trading cards` | `holo-vault` `foil-swamp` `booster-break` `mana-table` `final-draw` |
+| `gaming` | `save-point` `arcade-after-hours` `boss-door` `crt-inventory` |
+| `warehouse` | `dock-07` `conveyor-merge` `pick-to-light` `label-run` `high-bay` `night-shift` `sealed-stock` `packout` |
+| `epic` | `emerald-ring` `worldship` `dyson-sphere` `eclipse-convoy` |
 
 Standouts:
 
@@ -47,9 +51,11 @@ Standouts:
 - **`backrooms`**, **`labyrinth`**, **`tokyo`** — 2D DDA raycasters with perspective-correct floors, ceilings, wet reflections and neon signage.
 - **`atrium`**, **`mirrors`** — 3D SDF scenes: an endless balcony shaft, and a Kusama infinity room.
 
-## Palettes (11)
+The Trading cards, Gaming, Warehouse, and Epic scenes each animate on a six-second cycle.
 
-`sunset` `cyan` `ember` `synth` `phosphor` `mono` `daydream` `poolrooms` `deepspace` `ochre` `tokyo`
+## Palettes (16)
+
+`sunset` `cyan` `ember` `synth` `phosphor` `mono` `daydream` `poolrooms` `deepspace` `ochre` `tokyo` `iridescent` `frost` `sodium` `signal` `emerald`
 
 Each scene starts with its own palette. Pick another from the Palette menu or press `p` to cycle through them.
 
@@ -91,7 +97,7 @@ index.html          markup, UI, styles
 app.js              canvas, image and video export, audio, URL/state handling
 render.js           shared dither renderer
 scene-picker.js     scrollable scene list and thumbnails
-palettes.js         11 five-stop palettes
+palettes.js         16 five-stop palettes
 og.png              1200×630 collage used for the social card
 effects/
   index.js          stitches every category together into one ordered list
@@ -105,7 +111,7 @@ effects/
 audio/              two instrumental loops
 ```
 
-Add a scene to a category file in `effects/` with `{name, cat, pal, fn}`. Use a unique URL-friendly `name`, the category as `cat`, and the default palette index as `pal`. Add an optional `label` if the display name needs spaces. The sidebar renders its thumbnail from the same function used in the main preview. Edit or add five-color palettes in `palettes.js`.
+Add a scene in `effects/` with `{name, cat, pal, fn}` and register it in `effects/index.js`. Use a unique URL-friendly `name`, the category as `cat`, and the default palette index as `pal`. Add an optional `label` if the display name needs spaces. The sidebar renders its thumbnail from the same function used in the main preview. Edit or add five-color palettes in `palettes.js`.
 
 ## Running locally
 

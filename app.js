@@ -394,12 +394,16 @@ async function go(loop){
 }
 
 function draw(t){
-  const scene=FX[e].fn;
-  let field=scene;
+  const {fn,loopSeconds}=FX[e];
+  let field=fn;
   if(lp){
     const progress=Math.min(T,(performance.now()-lp)/1000);
-    const blend=progress/T;
-    field=(u,v)=> (1-blend)*scene(u,v,progress+100)+blend*scene(u,v,progress+100-T);
+    if(loopSeconds===T){
+      t=progress;
+    }else{
+      const blend=progress/T;
+      field=(u,v)=> (1-blend)*fn(u,v,progress+100)+blend*fn(u,v,progress+100-T);
+    }
   }
   renderField(img,P[p],field,t);
   sx.putImageData(img,0,0);
