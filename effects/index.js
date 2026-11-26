@@ -26,7 +26,7 @@ import {worldship} from './worldship.js';
 import {dysonSphere} from './dyson-sphere.js';
 import {eclipseConvoy} from './eclipse-convoy.js';
 
-const sixSecondLoops=[
+const loopingScenes=[
   holoVault, foilSwamp, boosterBreak, manaTable, finalDraw,
   savePoint, arcadeAfterHours, bossDoor, crtInventory,
   dock07, conveyorMerge, pickToLight, labelRun,
@@ -41,5 +41,5 @@ export const FX=[
   ...space,
   ...dreamcore,
   ...impossible,
-  ...sixSecondLoops.map(scene=>({...scene,loopSeconds:6}))
+  ...loopingScenes.map(scene=>({loopSeconds:6,...scene}))
 ];

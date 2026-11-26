@@ -1,10 +1,12 @@
 import {FX} from './effects/index.js';
 import {P,PN} from './palettes.js';
-import {renderField} from './render.js';
+import {renderField,renderLoopFrame} from './render.js';
 import {createScenePicker,sceneLabel} from './scene-picker.js';
+import {setupHeroExport} from './hero-export.js';
 
 const $=id=>document.getElementById(id);
 const c=$('c'),x=c.getContext('2d'),S=4;
+const CLIP_SECONDS=6;
 const palette=$('palette'),as=$('as'),ap=$('ap'),af=$('af');
 const gate=$('gate'),gt=$('gt'),out=$('out'),v=$('v'),dl=$('dl'),clBtn=$('cl');
 const pe=$('pe'),ne=$('ne'),zo=$('zo'),zi=$('zi'),ci=$('ci'),rec=$('rec'),rl=$('rl');
@@ -176,6 +178,7 @@ function setEffect(idx,syncHash=true,palOverride=-1){
   palette.value=String(p);
   sceneName.textContent=label;
   sceneCategory.textContent=sceneLabel(scene.cat);
+  rl.title='Record a seamless '+(scene.loopSeconds??CLIP_SECONDS)+'-second loop';
   document.title=label+' · Dither';
   if(syncHash&&location.hash!=='#'+scene.name){
     history.replaceState(null,'','#'+scene.name);
@@ -269,22 +272,30 @@ c.onclick=()=>chooseEffect(e+1);
 zi.onclick=()=>{pad=Math.min(.6,pad+.03);size();if(gated)draw(2.5)};
 zo.onclick=()=>{pad=Math.max(0,pad-.03);size();if(gated)draw(2.5)};
 
+function downloadBlob(blob,filename){
+  if(!blob)return;
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download=filename;
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 $('save-png').onclick=()=>{
   const filename=FX[e].name+'-'+PN[p]+'.png';
-  c.toBlob(blob=>{
-    if(!blob)return;
-    const url=URL.createObjectURL(blob);
-    const link=document.createElement('a');
-    link.href=url;
-    link.download=filename;
-    link.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  },'image/png');
+  c.toBlob(blob=>downloadBlob(blob,filename),'image/png');
 };
+
+setupHeroExport(()=>{
+  const scene=FX[e];
+  return {scene:scene.name,palette:PN[p],label:scene.label??sceneLabel(scene.name),
+    paletteLabel:sceneLabel(PN[p]),duration:scene.loopSeconds??CLIP_SECONDS};
+},downloadBlob);
 
 addEventListener('keydown',ev=>{
   if(ev.defaultPrevented||ev.metaKey||ev.ctrlKey||ev.altKey)return;
-  if(ev.target.closest?.('select, input, textarea, video, [contenteditable]'))return;
+  if(ev.target.closest?.('dialog, select, input, textarea, video, [contenteditable]'))return;
   if(gated&&(ev.key===' '||ev.key==='Enter')&&!ev.target.closest?.('button, a')){
     ev.preventDefault();
     enter();
@@ -322,12 +333,14 @@ addEventListener('drop',ev=>{
 });
 
 clBtn.onclick=ev=>{ev.preventDefault();v.pause();out.style.display='none'};
-let lp=0;const T=6;
+let loopCapture=null;
 rl.onclick=()=>{if(rec.classList.contains('on'))return;go(true)};
 rec.onclick=()=>go(false);
 
 async function go(loop){
   if(rec.classList.contains('on'))return;
+  const scene=FX[e];
+  const duration=loop?(scene.loopSeconds??CLIP_SECONDS):CLIP_SECONDS;
   const trk=TRACKS[aIdx];
   const hasAudio=Boolean(trk&&trk.src);
   const mimes=hasAudio
@@ -351,8 +364,8 @@ async function go(loop){
       const now=ctx.currentTime;
       gain.gain.setValueAtTime(.001,now);
       gain.gain.linearRampToValueAtTime(1,now+.12);
-      gain.gain.setValueAtTime(1,now+T-.32);
-      gain.gain.linearRampToValueAtTime(.001,now+T);
+      gain.gain.setValueAtTime(1,now+duration-.32);
+      gain.gain.linearRampToValueAtTime(.001,now+duration);
       recAudioNode=ctx.createBufferSource();
       recAudioNode.buffer=buf;recAudioNode.loop=true;
       recAudioNode.connect(gain);
@@ -377,35 +390,30 @@ async function go(loop){
       v.src=blobUrl;v.load();v.play().catch(()=>{});
       dl.href=blobUrl;
       const ext=mt.includes('mp4')?'mp4':'webm';
-      dl.download=FX[e].name+(hasAudio?'-'+trk.id:'')+(loop?'-loop':'')+'.'+ext;
-      out.style.display='block';rec.classList.remove('on');rec.textContent='● 6s';lp=0;
+      dl.download=scene.name+(hasAudio?'-'+trk.id:'')+(loop?'-loop':'')+'.'+ext;
+      out.style.display='block';rec.classList.remove('on');rec.textContent='● 6s';loopCapture=null;
     };
-    if(loop)lp=performance.now();
+    if(loop)loopCapture={start:performance.now(),duration};
     rec.textContent='rec…';
     r.start(250);
-    setTimeout(()=>r.stop(),T*1000);
+    setTimeout(()=>r.stop(),duration*1000);
   }catch(err){
     if(recAudioNode){try{recAudioNode.stop()}catch{}}
     if(vStream)vStream.getTracks().forEach(t=>t.stop());
     if(dest)dest.stream.getTracks().forEach(t=>t.stop());
-    rec.classList.remove('on');rec.textContent='● 6s';lp=0;
+    rec.classList.remove('on');rec.textContent='● 6s';loopCapture=null;
     alert('Recording failed: '+(err&&err.message||err));
   }
 }
 
 function draw(t){
-  const {fn,loopSeconds}=FX[e];
-  let field=fn;
-  if(lp){
-    const progress=Math.min(T,(performance.now()-lp)/1000);
-    if(loopSeconds===T){
-      t=progress;
-    }else{
-      const blend=progress/T;
-      field=(u,v)=> (1-blend)*fn(u,v,progress+100)+blend*fn(u,v,progress+100-T);
-    }
+  if(loopCapture){
+    const {start,duration}=loopCapture;
+    const progress=Math.min(duration,(performance.now()-start)/1000);
+    renderLoopFrame(img,P[p],FX[e],progress,duration);
+  }else{
+    renderField(img,P[p],FX[e].fn,t);
   }
-  renderField(img,P[p],field,t);
   sx.putImageData(img,0,0);
   x.imageSmoothingEnabled=false;
   x.drawImage(s,0,0,W*S,H*S);

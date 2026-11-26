@@ -8,7 +8,7 @@ export function renderField(image, palette, field, time) {
     const v = (y / height - .5) * aspectCorrection;
     const matrixRow = (y & 3) * 4;
     for (let x = 0; x < width; x++) {
-      const value = field(x / width - .5, v, time);
+      const value = field(x / width - .5, v, time, aspectCorrection);
       const level = (value < 0 ? 0 : value > .999 ? .999 : value) * 4;
       const base = level | 0;
       const index = level - base > bayer[matrixRow + (x & 3)] ? base + 1 : base;
@@ -20,4 +20,17 @@ export function renderField(image, palette, field, time) {
       data[pixel + 3] = 255;
     }
   }
+}
+
+export function renderLoopFrame(image, palette, scene, time, duration) {
+  const {fn,loopSeconds} = scene;
+  if (loopSeconds === duration) {
+    renderField(image, palette, fn, time);
+    return;
+  }
+
+  const blend = time / duration;
+  const field = (u, v, _time, aspect) => (1 - blend) * fn(u, v, time + 100, aspect)
+    + blend * fn(u, v, time + 100 - duration, aspect);
+  renderField(image, palette, field, time);
 }

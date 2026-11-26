@@ -5,9 +5,10 @@
   "type": "module",
   "description": "Dithered animated backdrops and dreamcore loops for screenshots and video exports",
   "scripts": {
-    "dev": "python3 -m http.server 8420",
+    "dev": "python3 scripts/dev-server.py 8420",
     "build": "node scripts/build.mjs",
-    "preview": "npm run build && python3 -m http.server 8420 --directory dist"
+    "export:hero": "node scripts/export-hero.mjs",
+    "preview": "npm run build && python3 scripts/dev-server.py 8420 --directory dist"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

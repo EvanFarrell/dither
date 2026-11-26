@@ -15,10 +15,11 @@ export const P=[
   [[5,4,20],[22,18,62],[60,56,132],[104,190,238],[220,252,255]],         // 12 frost
   [[7,10,16],[25,42,58],[66,88,104],[194,128,52],[255,220,142]],         // 13 sodium
   [[7,9,13],[34,42,47],[141,83,42],[235,153,56],[157,245,80]],          // 14 signal
-  [[4,12,14],[10,36,37],[23,86,77],[48,170,143],[151,255,219]]         // 15 emerald
+  [[4,12,14],[10,36,37],[23,86,77],[48,170,143],[151,255,219]],        // 15 emerald
+  [[22,22,22],[30,30,30],[65,36,251],[150,150,150],[249,251,255]]      // 16 stashtab
 ];
 
 export const PN=[
   'sunset','cyan','ember','synth','phosphor','mono',
-  'daydream','poolrooms','deepspace','ochre','tokyo','iridescent','frost','sodium','signal','emerald'
+  'daydream','poolrooms','deepspace','ochre','tokyo','iridescent','frost','sodium','signal','emerald','stashtab'
 ];

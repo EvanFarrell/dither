@@ -54,8 +54,38 @@ a:hover { color: var(--text); }
 }
 .brand { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.055em; }
 .top-actions, .stepper { display: flex; align-items: center; gap: 8px; }
-#save-png { background: var(--accent); border-color: var(--accent); color: #131d18; font-weight: 650; }
-#save-png:hover { background: #d4f6e5; }
+.top-actions { flex-wrap: wrap; justify-content: flex-end; }
+#save-png, #hero-submit { background: var(--accent); border-color: var(--accent); color: #131d18; font-weight: 650; }
+#save-png:hover, #hero-submit:hover { background: #d4f6e5; }
+#hero-dialog {
+  width: min(420px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  color: var(--text);
+  background: var(--panel);
+}
+#hero-dialog::backdrop { background: rgb(0 0 0 / 66%); }
+#hero-dialog h2 { margin: 0; font-size: 18px; }
+#hero-summary, #hero-dialog .hero-detail { color: var(--muted); }
+#hero-summary { margin: 6px 0 16px; }
+.hero-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.hero-fields label { display: grid; gap: 5px; }
+.hero-fields input {
+  width: 100%;
+  min-height: 34px;
+  padding: 5px 9px;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+.hero-detail { margin: 14px 0 0; }
+#hero-status { min-height: 1.35em; margin: 10px 0; }
+.hero-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .workspace { display: grid; grid-template-columns: var(--rail-width) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); min-height: 0; }
 .library {
   display: grid;
@@ -197,6 +227,7 @@ a:hover { color: var(--text); }
     <div class="top-actions">
       <a href="https://github.com/EvanFarrell/dither" target="_blank" rel="noopener">GitHub ↗</a>
       <button id="save-png" type="button">Save PNG</button>
+      <button id="hero-open" type="button" aria-haspopup="dialog">Export Hero</button>
     </div>
   </header>
   <div class="workspace">
@@ -256,6 +287,24 @@ a:hover { color: var(--text); }
     </main>
   </div>
 </div>
+<dialog id="hero-dialog" aria-labelledby="hero-title" aria-describedby="hero-summary">
+  <form id="hero-form">
+    <h2 id="hero-title">Export hero</h2>
+    <p id="hero-summary"></p>
+    <div class="hero-fields">
+      <label>Width (px) <input name="width" type="number" min="16" max="7680" step="2" value="1920" required></label>
+      <label>Height (px) <input name="height" type="number" min="16" max="4320" step="2" value="1080" required></label>
+      <label>Frame rate (fps) <input name="fps" type="number" min="1" max="60" value="24" required></label>
+      <label>Dither cell (px) <input name="pixelSize" type="number" min="1" max="16" value="4" required></label>
+    </div>
+    <p class="hero-detail">ZIP with silent MP4 and WebM loops, desktop and mobile posters, and an HTML preview.</p>
+    <p id="hero-status" role="status"></p>
+    <div class="hero-actions">
+      <button id="hero-close" type="button">Close</button>
+      <button id="hero-submit" type="submit">Download ZIP</button>
+    </div>
+  </form>
+</dialog>
 <script type="module" src="./app.js"></script>
 </body>
 </html>

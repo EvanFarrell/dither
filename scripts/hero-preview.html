@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dither hero preview</title>
+<style>
+  body { margin: 0; }
+  .dither-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: %%BACKGROUND%%;
+  }
+  .dither-hero__art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .dither-hero__art img, .dither-hero__art video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: right center;
+  }
+  .dither-hero__art video { visibility: hidden; }
+  .dither-hero.is-playing video { visibility: visible; }
+</style>
+<section class="dither-hero">
+  <div class="dither-hero__art" aria-hidden="true">
+    <picture>
+      <source media="(max-width: 767px)" srcset="%%STEM%%-mobile.png">
+      <img src="%%STEM%%-poster.png" alt="" fetchpriority="high">
+    </picture>
+    <video muted loop playsinline preload="none">
+      %%SOURCES%%
+    </video>
+  </div>
+  <!-- Place the landing-page hero content here. -->
+</section>
+<script type="module">
+  const hero = document.querySelector('.dither-hero');
+  const video = hero.querySelector('video');
+  const sources = [...video.querySelectorAll('source')];
+  const motion = matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)');
+  let ready = false;
+  let visible = false;
+
+  function syncPlayback() {
+    if (!ready || !visible || !motion.matches || navigator.connection?.saveData) {
+      video.pause();
+      hero.classList.remove('is-playing');
+      return;
+    }
+    if (!sources[0].hasAttribute('src')) {
+      for (const source of sources) source.src = source.dataset.src;
+      video.load();
+    }
+    video.muted = true;
+    video.play().catch(() => {});
+  }
+
+  video.addEventListener('playing', () => hero.classList.add('is-playing'));
+  motion.addEventListener('change', syncPlayback);
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    syncPlayback();
+  }).observe(hero);
+
+  function scheduleVideo() {
+    const start = () => { ready = true; syncPlayback(); };
+    if ('requestIdleCallback' in window) requestIdleCallback(start, {timeout: 1500});
+    else setTimeout(start, 0);
+  }
+  if (document.readyState === 'complete') scheduleVideo();
+  else addEventListener('load', scheduleVideo, {once: true});
+</script>
+</html>
